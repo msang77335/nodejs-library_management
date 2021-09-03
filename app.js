@@ -14,6 +14,7 @@ app.get("/", function (req, res) {
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(express.static("public"));
 
 app.use("/api/auth", require("./src/routes/auth.route"));
 app.use("/api/employee", require("./src/routes/employee.route"));
