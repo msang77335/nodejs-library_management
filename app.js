@@ -17,7 +17,12 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.use("/api/auth", require("./src/routes/auth.route"));
-app.use("/api/employee", require("./src/routes/employee.route"));
+app.use("/api/staff", require("./src/routes/staff.route"));
+// app.use("/api/reader", require("./src/routes/reader.route"));
+// app.use("/api/book", require("./src/routes/book.route"));
+// app.use("/api/category", require("./src/routes/category.route"));
+// app.use("/api/borrow", require("./src/routes/borrow_receipt.route"));
+// app.use("/api/fine", require("./src/routes/fine_receipt.route"));
 
 app.use(function (req, res, next) {
    res.status(404).json({

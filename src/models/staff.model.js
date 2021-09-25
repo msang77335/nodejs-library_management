@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const employeeSchema = new Schema(
+const staffSchema = new Schema(
    {
       id: { type: String, require: true },
       name: { type: String, require: true },
@@ -15,10 +15,9 @@ const employeeSchema = new Schema(
       part: { type: String, require: true },
       password: { type: String, require: true },
    },
-   { collection: "employee" }
+   { collection: "staff" }
 );
 
-const employee =
-   mongoose.models.Employee || mongoose.model("employee", employeeSchema);
+const staff = mongoose.models.Staff || mongoose.model("staff", staffSchema);
 
-module.exports = employee;
+module.exports = staff;

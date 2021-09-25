@@ -1,6 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const employeeModel = require("../models/employee.model");
+const staffModel = require("../models/staff.model");
 const authSchema = require("../models/auth.model");
 const validate = require("../middleware/validate.mdw");
 const bcryptjs = require("bcrypt");
@@ -23,29 +23,29 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.get("/", auth, async function (req, res) {
-   const employee = await employeeModel.findOne({
+   const staff = await staffModel.findOne({
       id: req.accessTokenPayload.id,
    });
-   employee.password = undefined;
-   return res.json({ user: employee });
+   staff.password = undefined;
+   return res.json({ user: staff });
 });
 
 router.post("/", validate(authSchema), async function (req, res) {
    const { id, password } = req.body;
 
-   const employee = await employeeModel.findOne({
+   const staff = await staffModel.findOne({
       id: id,
    });
 
-   if (employee == null) {
+   if (staff == null) {
       return res.json({ authenticated: false });
    }
 
-   if (bcryptjs.compareSync(password, employee.password) === false) {
+   if (bcryptjs.compareSync(password, staff.password) === false) {
       return res.json({ authenticated: false });
    }
 
-   const accessToken = jwt.sign({ id: employee.id }, process.env.SECRET_TOKEN);
+   const accessToken = jwt.sign({ id: staff.id }, process.env.SECRET_TOKEN);
    return res.json({
       authenticated: true,
       accessToken: accessToken,
@@ -57,33 +57,29 @@ router.patch("/password", auth, async function (req, res) {
    const { id } = req.accessTokenPayload;
    const { currentPassword, newPassword } = req.body;
 
-   const employee = await employeeModel.findOne({ id: id });
+   const staff = await staffModel.findOne({ id: id });
 
-   if (employee == null) {
+   if (staff == null) {
       return res.json({ updated: false });
    }
 
-   if (bcryptjs.compareSync(currentPassword, employee.password) === false) {
+   if (bcryptjs.compareSync(currentPassword, staff.password) === false) {
       return res.json({ updated: false });
    }
 
    const password = bcryptjs.hashSync(newPassword, 10);
 
-   employeeModel.updateOne(
-      { id: id },
-      { $set: { password: password } },
-      (err) => {
-         if (err) {
-            return res.json({
-               updated: false,
-            });
-         } else {
-            return res.json({
-               updated: true,
-            });
-         }
+   staffModel.updateOne({ id: id }, { $set: { password: password } }, (err) => {
+      if (err) {
+         return res.json({
+            updated: false,
+         });
+      } else {
+         return res.json({
+            updated: true,
+         });
       }
-   );
+   });
 });
 
 router.patch(
@@ -101,7 +97,7 @@ router.patch(
          });
       }
 
-      employeeModel.updateOne(
+      staffModel.updateOne(
          { id: id },
          { $set: { image: `/uploads/${avatar.filename}` } },
          (err) => {
