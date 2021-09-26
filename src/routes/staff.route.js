@@ -55,7 +55,7 @@ router.delete("/:id", auth, async function (req, res) {
          .status(201)
          .json({ delete: false, message: "Staff id invalid!" });
    }
-   const result = await staff.remove();
+   await staff.remove();
    res.status(201).json({ delete: true, message: "Delete staff success!!!" });
 });
 
