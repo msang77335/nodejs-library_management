@@ -26,11 +26,14 @@ router.get("/", auth, async function (req, res) {
    const staff = await staffModel.findOne({
       id: req.accessTokenPayload.id,
    });
+   if (!staff) {
+      return res.status(200).json({ author: false, user: staff });
+   }
    staff.password = undefined;
-   return res.json({ user: staff });
+   return res.status(200).json({ authenticated: true, user: staff });
 });
 
-router.post("/", validate(authSchema), async function (req, res) {
+router.post("/", auth, validate(authSchema), async function (req, res) {
    const { id, password } = req.body;
 
    const staff = await staffModel.findOne({
@@ -38,11 +41,14 @@ router.post("/", validate(authSchema), async function (req, res) {
    });
 
    if (staff == null) {
-      return res.json({ authenticated: false });
+      return res.json({ authenticated: false, message: "User id invalid!" });
    }
 
    if (bcryptjs.compareSync(password, staff.password) === false) {
-      return res.json({ authenticated: false });
+      return res.json({
+         authenticated: false,
+         message: "User password incorrect!",
+      });
    }
 
    const accessToken = jwt.sign({ id: staff.id }, process.env.SECRET_TOKEN);
@@ -50,6 +56,7 @@ router.post("/", validate(authSchema), async function (req, res) {
       authenticated: true,
       accessToken: accessToken,
       refreshToken: "refreshToken",
+      message: "Login success!!!",
    });
 });
 
@@ -60,26 +67,20 @@ router.patch("/password", auth, async function (req, res) {
    const staff = await staffModel.findOne({ id: id });
 
    if (staff == null) {
-      return res.json({ updated: false });
+      return res.json({ update: false, message: "User id invalid!" });
    }
 
    if (bcryptjs.compareSync(currentPassword, staff.password) === false) {
-      return res.json({ updated: false });
+      return res.json({
+         update: false,
+         message: "User current password incorrect!",
+      });
    }
 
    const password = bcryptjs.hashSync(newPassword, 10);
 
-   staffModel.updateOne({ id: id }, { $set: { password: password } }, (err) => {
-      if (err) {
-         return res.json({
-            updated: false,
-         });
-      } else {
-         return res.json({
-            updated: true,
-         });
-      }
-   });
+   staffModel.updateOne({ id: id }, { $set: { password: password } });
+   return res.json({ update: true, message: "Update password success!!!" });
 });
 
 router.patch(
@@ -92,26 +93,16 @@ router.patch(
 
       if (avatar === null) {
          return res.json({
-            updated: false,
+            update: false,
             message: "Image not found!",
          });
       }
 
       staffModel.updateOne(
          { id: id },
-         { $set: { image: `/uploads/${avatar.filename}` } },
-         (err) => {
-            if (err) {
-               return res.json({
-                  updated: false,
-               });
-            } else {
-               return res.json({
-                  updated: true,
-               });
-            }
-         }
+         { $set: { image: `/uploads/${avatar.filename}` } }
       );
+      return res.json({ update: true, message: "Update avatar success!!!" });
    }
 );
 
