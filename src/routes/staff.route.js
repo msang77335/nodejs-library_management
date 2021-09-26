@@ -6,43 +6,57 @@ const bcryptjs = require("bcrypt");
 
 const router = express.Router();
 
-router.get("/", async function (req, res) {
+router.get("/", auth, async function (req, res) {
    const data = await staffModel.find({});
-   res.json({ data: data });
+   if (!data) {
+      res.status(200).json({ fetch: false, data: data });
+   }
+   res.status(200).json({ fetch: true, data: data });
 });
 
-router.get("/:id", async function (req, res) {
+router.get("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
    const data = await staffModel.findOne({ id: id });
-   res.json({ data: data });
+   if (!data) {
+      res.status(200).json({
+         fetch: false,
+         data: data,
+         message: "Staff id invalid!",
+      });
+   }
+   res.status(200).json({ fetch: true, data: data });
 });
 
-router.post("/", validate(staffModel), async function (req, res) {
+router.post("/", auth, validate(staffModel), async function (req, res) {
    const staff = req.body;
    staff.password = bcryptjs.hashSync(staff.phone, 10);
-   const result = await new staffModel(staff).save();
-   res.status(201).json({ staff: result, added: true });
+   await new staffModel(staff).save();
+   res.status(201).json({ add: true, message: "Update staff success!!!" });
 });
 
-router.patch("/:id", validate(staffModel), async function (req, res) {
+router.patch("/:id", auth, validate(staffModel), async function (req, res) {
    const id = req.params.id || "0";
    const newStaff = req.body;
    const staff = await staffModel.findOne({ id: id });
    if (!staff) {
-      return res.status(201).json({ staff: staff, updated: false });
+      return res
+         .status(201)
+         .json({ update: false, message: "Staff id invalid!" });
    }
-   const result = await staffModel.updateOne({ id: id }, newStaff);
-   res.status(201).json({ staff: result, updated: true });
+   await staffModel.updateOne({ id: id }, newStaff);
+   res.status(201).json({ update: true, message: "Update staff success!!!" });
 });
 
-router.delete("/:id", async function (req, res) {
+router.delete("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
    const staff = await staffModel.findOne({ id: id });
    if (!staff) {
-      return res.status(201).json({ staff: staff, deleted: false });
+      return res
+         .status(201)
+         .json({ delete: false, message: "Staff id invalid!" });
    }
    const result = await staff.remove();
-   res.status(201).json({ staff: result, deleted: true });
+   res.status(201).json({ delete: true, message: "Delete staff success!!!" });
 });
 
 module.exports = router;
