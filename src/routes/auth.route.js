@@ -33,7 +33,7 @@ router.get("/", auth, async function (req, res) {
    return res.status(200).json({ authenticated: true, user: staff });
 });
 
-router.post("/", auth, validate(authSchema), async function (req, res) {
+router.post("/", validate(authSchema), async function (req, res) {
    const { id, password } = req.body;
 
    const staff = await staffModel.findOne({
