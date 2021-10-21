@@ -1,6 +1,7 @@
 const express = require("express");
 const auth = require("../middleware/auth.mdw");
 const categoryModel = require("../models/category.model");
+const bookModel = require("../models/book.model");
 const validate = require("../middleware/validate.mdw");
 
 const router = express.Router();
@@ -28,7 +29,10 @@ router.get("/:id", auth, async function (req, res) {
 
 router.post("/", auth, validate(categoryModel), async function (req, res) {
    const category = req.body;
-   await new categoryModel(category).save();
+   const lastCategory = await categoryModel.find().sort({ id: -1 }).limit(1);
+   const lastId = lastCategory[0].id.split(".")[1];
+   const id = "C.".concat((parseInt(lastId) + 1).toString().padStart(6, "0"));
+   await new categoryModel({ id: id, ...category }).save();
    res.status(201).json({ add: true, message: "Add category success!!!" });
 });
 
@@ -43,7 +47,7 @@ router.patch("/:id", auth, validate(categoryModel), async function (req, res) {
    }
    await categoryModel.updateOne({ id: id }, newCategory);
    res.status(201).json({
-      updated: true,
+      update: true,
       message: "Update category success!!!",
    });
 });
@@ -55,6 +59,12 @@ router.delete("/:id", auth, async function (req, res) {
       return res
          .status(201)
          .json({ delete: false, message: "Category id invalid!" });
+   }
+   const bookList = await bookModel.find({ category: id });
+   if (bookList.length > 0) {
+      return res
+         .status(201)
+         .json({ delete: false, message: "Category id valid in a book!" });
    }
    await category.remove();
    res.status(201).json({

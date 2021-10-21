@@ -30,7 +30,7 @@ router.get("/", auth, async function (req, res) {
       return res.status(200).json({ author: false, user: staff });
    }
    staff.password = undefined;
-   return res.status(200).json({ authenticated: true, user: staff });
+   return res.status(200).json({ authen: true, user: staff });
 });
 
 router.post("/", validate(authSchema), async function (req, res) {
@@ -41,19 +41,19 @@ router.post("/", validate(authSchema), async function (req, res) {
    });
 
    if (staff == null) {
-      return res.json({ authenticated: false, message: "User id invalid!" });
+      return res.json({ authen: false, message: "User id invalid!" });
    }
 
    if (bcryptjs.compareSync(password, staff.password) === false) {
       return res.json({
-         authenticated: false,
+         authen: false,
          message: "User password incorrect!",
       });
    }
 
    const accessToken = jwt.sign({ id: staff.id }, process.env.SECRET_TOKEN);
    return res.json({
-      authenticated: true,
+      authen: true,
       accessToken: accessToken,
       refreshToken: "refreshToken",
       message: "Login success!!!",
@@ -90,6 +90,7 @@ router.patch(
    async function (req, res) {
       const { id } = req.accessTokenPayload;
       const avatar = req.file;
+      console.log(avatar);
 
       if (avatar === null) {
          return res.json({
@@ -98,7 +99,7 @@ router.patch(
          });
       }
 
-      staffModel.updateOne(
+      await staffModel.updateOne(
          { id: id },
          { $set: { image: `/uploads/${avatar.filename}` } }
       );

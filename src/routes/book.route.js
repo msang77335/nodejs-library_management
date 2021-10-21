@@ -1,6 +1,7 @@
 const express = require("express");
 const auth = require("../middleware/auth.mdw");
 const bookModel = require("../models/book.model");
+const categoryModel = require("../models/category.model");
 const validate = require("../middleware/validate.mdw");
 
 const router = express.Router();
@@ -8,9 +9,26 @@ const router = express.Router();
 router.get("/", auth, async function (req, res) {
    const data = await bookModel.find({});
    if (!data) {
-      res.status(200).json({ fetch: false, data: data });
+      res.status(200).json({ fetch: false, data: null });
    }
-   res.status(200).json({ fetch: true, data: data });
+   const categoryList = await categoryModel.find({});
+   const bookList = data.map((value) => {
+      const category = categoryList.find(
+         (category) => category.id == value.category
+      );
+      return {
+         id: value.id,
+         name: value.name,
+         category: { key: category.id, value: category.name },
+         author: value.author,
+         publisYear: { type: String, required: true },
+         publisher: value.publisher,
+         addDate: value.addDate,
+         reciever: value.reciever,
+         price: value.price,
+      };
+   });
+   res.status(200).json({ fetch: true, data: bookList });
 });
 
 router.get("/:id", auth, async function (req, res) {
@@ -23,7 +41,19 @@ router.get("/:id", auth, async function (req, res) {
          message: "Book id invalid!",
       });
    }
-   res.status(200).json({ fetch: true, data: data });
+   const category = await categoryModel.findOne({ id: data.category });
+   const book = {
+      id: data.id,
+      name: data.name,
+      category: { key: category.id, value: category.name },
+      author: data.author,
+      publisYear: { key: data.publisYear, value: data.publisYear },
+      publisher: data.publisher,
+      addDate: data.addDate,
+      reciever: data.reciever,
+      price: data.price,
+   };
+   res.status(200).json({ fetch: true, data: book });
 });
 
 router.get("/category/:category", auth, async function (req, res) {

@@ -5,7 +5,7 @@ const borrowReceiptSchema = new Schema(
    {
       id: { type: String },
       reader: { type: String, required: true },
-      borrow_date: { type: String, required: true },
+      borrowDate: { type: String, required: true },
       books: { type: [String], required: true },
    },
    { collection: "borrow_receipt" }

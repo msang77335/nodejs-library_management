@@ -5,15 +5,25 @@ const validate = require("../middleware/validate.mdw");
 
 const router = express.Router();
 
-router.get("/", async function (req, res) {
+router.get("/", auth, async function (req, res) {
    const data = await borrowReceiptModel.find({});
-   res.json({ data: data });
+   if (!data) {
+      res.status(200).json({ fetch: false, data: data });
+   }
+   res.status(200).json({ fetch: true, data: data });
 });
 
-router.get("/:id", async function (req, res) {
+router.get("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
    const data = await borrowReceiptModel.findOne({ id: id });
-   res.json({ data: data });
+   if (!data) {
+      res.status(200).json({
+         fetch: false,
+         data: dataj,
+         message: "Borrow receipt id invalid!",
+      });
+   }
+   res.status(200).json({ fetch: true, data: data });
 });
 
 router.post("/", validate(borrowReceiptModel), async function (req, res) {
@@ -37,10 +47,17 @@ router.delete("/:id", async function (req, res) {
    const id = req.params.id || "0";
    const borrow = await borrowReceiptModel.findOne({ id: id });
    if (!borrow) {
-      return res.status(201).json({ borrow: borrow, deleted: false });
+      return res.status(200).json({
+         borrow: borrow,
+         deleted: false,
+         message: "Borrow receipt invalid!",
+      });
    }
-   const result = await borrow.remove();
-   res.status(201).json({ borrow: result, deleted: true });
+   await borrow.remove();
+   res.status(200).json({
+      delete: true,
+      message: "Delete borrow receipt success!!!",
+   });
 });
 
 module.exports = router;

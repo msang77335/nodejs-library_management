@@ -6,11 +6,11 @@ const readerSchema = new Schema(
       id: { type: String, require: true },
       name: { type: String, require: true },
       email: { type: String, require: true },
-      birth_day: { type: String, require: true },
+      birthDay: { type: String, require: true },
       address: { type: String, require: true },
       phone: { type: String, require: true },
       category: { type: String, require: true },
-      create_by: { type: String, require: true },
+      createBy: { type: String, require: true },
       password: { type: String, require: true },
    },
    { collection: "reader" }
