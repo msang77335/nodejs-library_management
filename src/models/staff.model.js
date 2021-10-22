@@ -14,6 +14,7 @@ const staffSchema = new Schema(
       position: { type: String, require: true },
       part: { type: String, require: true },
       password: { type: String, require: true },
+      active: { type: Boolean },
    },
    { collection: "staff" }
 );

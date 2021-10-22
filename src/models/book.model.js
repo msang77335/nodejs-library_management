@@ -9,9 +9,10 @@ const bookSchema = new Schema(
       author: { type: String, required: true },
       publisYear: { type: String, required: true },
       publisher: { type: String, required: true },
-      addDate: { type: String, required: true },
-      reciever: { type: String, required: true },
+      //addDate: { type: String, required: true },
+      reciever: { type: String },
       price: { type: String, required: true },
+      active: { type: Boolean },
    },
    { collection: "book" }
 );

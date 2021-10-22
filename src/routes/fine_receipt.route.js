@@ -7,24 +7,24 @@ const validate = require("../middleware/validate.mdw");
 const router = express.Router();
 
 router.get("/", auth, async function (req, res) {
-   const data = await fineReceiptModel.find({});
+   const data = await fineReceiptModel.find({ active: true });
    if (!data) {
-      res.status(200).json({ fetch: false, data: data });
+      return res.status(200).json({ fetch: false, data: data });
    }
-   res.status(200).json({ fetch: true, data: data });
+   return res.status(200).json({ fetch: true, data: data });
 });
 
 router.get("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
-   const data = await fineReceiptModel.findOne({ id: id });
+   const data = await fineReceiptModel.findOne({ id: id, active: true });
    if (!data) {
-      res.status(200).json({
+      return res.status(200).json({
          fetch: false,
          data: data,
          message: "Fine receipt id invalid!",
       });
    }
-   res.status(200).json({ fetch: true, data: data });
+   return res.status(200).json({ fetch: true, data: data });
 });
 
 router.post("/", auth, validate(fineReceiptModel), async function (req, res) {
@@ -33,12 +33,13 @@ router.post("/", auth, validate(fineReceiptModel), async function (req, res) {
    if (!fine) {
       return res.status(201).json({ add: false, message: "Fine id invalid!" });
    }
+   fineReceipt.active = true;
    await new fineReceiptModel(fineReceipt).save();
    await fineModel.updateOne(
       { reader: result.reader },
       { $set: { debt: result.remaining } }
    );
-   res.status(201).json({
+   return res.status(201).json({
       added: true,
       message: "Add fine receipt success!!!",
    });
@@ -46,24 +47,25 @@ router.post("/", auth, validate(fineReceiptModel), async function (req, res) {
 
 router.delete("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
-   const fineReceipt = await fineReceiptModel.findOne({ id: id });
+   const fineReceipt = await fineReceiptModel.findOne({ id: id, active: true });
+   if (!fineReceipt) {
+      return res
+         .status(201)
+         .json({ delete: false, message: "Fine receipt id invalid!" });
+   }
    const fine = await fineModel.findOne({ reader: fineReceipt.reader });
    if (!fine) {
       return res
          .status(201)
          .json({ delete: false, message: "Fine id invalid!" });
    }
-   if (!fineReceipt) {
-      return res
-         .status(201)
-         .json({ delete: false, message: "Fine receipt id invalid!" });
-   }
-   await fineReceipt.remove();
+   //await fineReceipt.remove();
+   await fineReceiptModel.updateOne({ id: id }, { $set: { active: false } });
    await fineModel.updateOne(
       { reader: fineReceipt.reader },
       { $set: { debt: fine.debt + fineReceipt.payment } }
    );
-   res.status(201).json({
+   return res.status(201).json({
       delete: true,
       message: "Delete fine receipt success!!!",
    });

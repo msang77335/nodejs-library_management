@@ -5,6 +5,7 @@ const categorySchema = new Schema(
    {
       id: { type: String },
       name: { type: String, required: true },
+      active: { type: Boolean },
    },
    { collection: "category" }
 );

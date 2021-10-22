@@ -9,6 +9,7 @@ const fineReceiptSchema = new Schema(
       payment: { type: Number, required: true },
       remaining: { type: Number, required: true },
       date: { type: String, required: true },
+      active: { type: Boolean },
    },
    { collection: "fine_receipt" }
 );

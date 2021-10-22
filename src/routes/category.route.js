@@ -7,24 +7,24 @@ const validate = require("../middleware/validate.mdw");
 const router = express.Router();
 
 router.get("/", auth, async function (req, res) {
-   const data = await categoryModel.find({});
+   const data = await categoryModel.find({ active: true });
    if (!data) {
-      res.status(200).json({ fetch: false, data: data });
+      return res.status(200).json({ fetch: false, data: data });
    }
-   res.status(200).json({ fetch: true, data: data });
+   return res.status(200).json({ fetch: true, data: data });
 });
 
 router.get("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
-   const data = await categoryModel.findOne({ id: id });
+   const data = await categoryModel.findOne({ id: id, active: true });
    if (!data) {
-      res.status(200).json({
+      return res.status(200).json({
          fetch: false,
          data: data,
          message: "Category id invalid!",
       });
    }
-   res.status(200).json({ fetch: true, data: data });
+   return res.status(200).json({ fetch: true, data: data });
 });
 
 router.post("/", auth, validate(categoryModel), async function (req, res) {
@@ -32,8 +32,10 @@ router.post("/", auth, validate(categoryModel), async function (req, res) {
    const lastCategory = await categoryModel.find().sort({ id: -1 }).limit(1);
    const lastId = lastCategory[0].id.split(".")[1];
    const id = "C.".concat((parseInt(lastId) + 1).toString().padStart(6, "0"));
-   await new categoryModel({ id: id, ...category }).save();
-   res.status(201).json({ add: true, message: "Add category success!!!" });
+   await new categoryModel({ id: id, active: true, ...category }).save();
+   return res
+      .status(201)
+      .json({ add: true, message: "Add category success!!!" });
 });
 
 router.patch("/:id", auth, validate(categoryModel), async function (req, res) {
@@ -46,7 +48,7 @@ router.patch("/:id", auth, validate(categoryModel), async function (req, res) {
          .json({ update: false, message: "Category id invalid!" });
    }
    await categoryModel.updateOne({ id: id }, newCategory);
-   res.status(201).json({
+   return res.status(201).json({
       update: true,
       message: "Update category success!!!",
    });
@@ -66,8 +68,9 @@ router.delete("/:id", auth, async function (req, res) {
          .status(201)
          .json({ delete: false, message: "Category id valid in a book!" });
    }
-   await category.remove();
-   res.status(201).json({
+   // await category.remove();
+   await categoryModel.updateOne({ id: id }, { $set: { active: false } });
+   return res.status(201).json({
       delete: true,
       message: "Delete category success!!!",
    });

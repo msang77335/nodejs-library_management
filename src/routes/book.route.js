@@ -7,9 +7,9 @@ const validate = require("../middleware/validate.mdw");
 const router = express.Router();
 
 router.get("/", auth, async function (req, res) {
-   const data = await bookModel.find({});
+   const data = await bookModel.find({ active: true });
    if (!data) {
-      res.status(200).json({ fetch: false, data: null });
+      return res.status(200).json({ fetch: false, data: null });
    }
    const categoryList = await categoryModel.find({});
    const bookList = data.map((value) => {
@@ -26,16 +26,17 @@ router.get("/", auth, async function (req, res) {
          addDate: value.addDate,
          reciever: value.reciever,
          price: value.price,
+         active: value.active,
       };
    });
-   res.status(200).json({ fetch: true, data: bookList });
+   return res.status(200).json({ fetch: true, data: bookList });
 });
 
 router.get("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
-   const data = await bookModel.findOne({ id: id });
+   const data = await bookModel.findOne({ id: id, active: true });
    if (!data) {
-      res.status(200).json({
+      return res.status(200).json({
          fetch: false,
          data: data,
          message: "Book id invalid!",
@@ -52,27 +53,48 @@ router.get("/:id", auth, async function (req, res) {
       addDate: data.addDate,
       reciever: data.reciever,
       price: data.price,
+      active: data.active,
    };
-   res.status(200).json({ fetch: true, data: book });
+   return res.status(200).json({ fetch: true, data: book });
 });
 
 router.get("/category/:category", auth, async function (req, res) {
    const categoryId = req.params.category || "0";
-   const data = await bookModel.find({ category: categoryId });
-   if (!data) {
-      res.status(200).json({
+   const category = await categoryModel.findOne({
+      id: categoryId,
+      active: true,
+   });
+   if (!category) {
+      return res.status(200).json({
          fetch: false,
          data: data,
          message: "Category id invalid!",
       });
    }
-   res.status(200).json({ fetch: true, data: data });
+   const data = await bookModel.find({ category: categoryId });
+   if (!data) {
+      return res.status(200).json({
+         fetch: false,
+         data: data,
+         message: "Category id invalid!",
+      });
+   }
+   return res.status(200).json({ fetch: true, data: data });
 });
 
 router.post("/", auth, validate(bookModel), async function (req, res) {
+   const { id } = req.accessTokenPayload;
    const book = req.body;
+   const lastBook = await bookModel.find().sort({ id: -1 }).limit(1);
+   const lastId = lastBook[0].id.split(".")[1];
+   const newId = "B.".concat(
+      (parseInt(lastId) + 1).toString().padStart(6, "0")
+   );
+   book.active = true;
+   book.id = newId;
+   book.reciever = id;
    await new bookModel(book).save();
-   res.status(201).json({ add: true, message: "Add book success!!!" });
+   return res.status(201).json({ add: true, message: "Add book success!!!" });
 });
 
 router.patch("/:id", auth, validate(bookModel), async function (req, res) {
@@ -85,7 +107,9 @@ router.patch("/:id", auth, validate(bookModel), async function (req, res) {
          .json({ update: false, message: "Book id invalid!" });
    }
    await bookModel.updateOne({ id: id }, newBook);
-   res.status(201).json({ update: true, message: "Update book success!!!" });
+   return res
+      .status(201)
+      .json({ update: true, message: "Update book success!!!" });
 });
 
 router.delete("/:id", auth, async function (req, res) {
@@ -96,8 +120,11 @@ router.delete("/:id", auth, async function (req, res) {
          .status(201)
          .json({ delete: false, message: "Book id invalid!" });
    }
-   await book.remove();
-   res.status(201).json({ delete: true, message: "Delete book success!!!" });
+   // await book.remove();
+   await bookModel.updateOne({ id: id }, { $set: { active: false } });
+   return res
+      .status(201)
+      .json({ delete: true, message: "Delete book success!!!" });
 });
 
 module.exports = router;

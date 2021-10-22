@@ -7,6 +7,7 @@ const borrowReceiptSchema = new Schema(
       reader: { type: String, required: true },
       borrowDate: { type: String, required: true },
       books: { type: [String], required: true },
+      active: { type: Boolean },
    },
    { collection: "borrow_receipt" }
 );

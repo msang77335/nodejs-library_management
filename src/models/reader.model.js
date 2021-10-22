@@ -12,6 +12,7 @@ const readerSchema = new Schema(
       category: { type: String, require: true },
       createBy: { type: String, require: true },
       password: { type: String, require: true },
+      active: { type: Boolean },
    },
    { collection: "reader" }
 );
