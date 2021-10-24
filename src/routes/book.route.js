@@ -3,6 +3,7 @@ const auth = require("../middleware/auth.mdw");
 const bookModel = require("../models/book.model");
 const categoryModel = require("../models/category.model");
 const validate = require("../middleware/validate.mdw");
+const moment = require("moment");
 
 const router = express.Router();
 
@@ -83,7 +84,6 @@ router.get("/category/:category", auth, async function (req, res) {
 });
 
 router.post("/", auth, validate(bookModel), async function (req, res) {
-   const { id } = req.accessTokenPayload;
    const book = req.body;
    const lastBook = await bookModel.find().sort({ id: -1 }).limit(1);
    const lastId = lastBook[0].id.split(".")[1];
@@ -92,7 +92,7 @@ router.post("/", auth, validate(bookModel), async function (req, res) {
    );
    book.active = true;
    book.id = newId;
-   book.reciever = id;
+   book.addDate = moment().format("MM-DD-YYYY");
    await new bookModel(book).save();
    return res.status(201).json({ add: true, message: "Add book success!!!" });
 });

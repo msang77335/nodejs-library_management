@@ -2,6 +2,7 @@ const express = require("express");
 const auth = require("../middleware/auth.mdw");
 const fineReceiptModel = require("../models/fine_receipt.model");
 const fineModel = require("../models/fine.model");
+const readerModel = require("../models/reader.model");
 const validate = require("../middleware/validate.mdw");
 
 const router = express.Router();
@@ -11,7 +12,24 @@ router.get("/", auth, async function (req, res) {
    if (!data) {
       return res.status(200).json({ fetch: false, data: data });
    }
-   return res.status(200).json({ fetch: true, data: data });
+   const allReader = await readerModel.find();
+   const fineReceipt = data.map((value) => {
+      currentReader = allReader.find((reader) => reader.id === value.reader);
+      return {
+         id: value.id,
+         debt: value.debt,
+         avtive: value.active,
+         payment: value.payment,
+         createBy: value.createBy,
+         createDate: value.createDate,
+         remaining: value.remaining,
+         reader: {
+            key: currentReader.id,
+            value: `${currentReader.id} - ${currentReader.name}`,
+         },
+      };
+   });
+   return res.status(200).json({ fetch: true, data: fineReceipt });
 });
 
 router.get("/:id", auth, async function (req, res) {
@@ -24,7 +42,21 @@ router.get("/:id", auth, async function (req, res) {
          message: "Fine receipt id invalid!",
       });
    }
-   return res.status(200).json({ fetch: true, data: data });
+   const reader = await readerModel.findOne({ id: data.reader });
+   const fineReceipt = {
+      id: data.id,
+      debt: data.debt,
+      avtive: data.active,
+      payment: data.payment,
+      createBy: data.createBy,
+      createDate: data.createDate,
+      remaining: data.remaining,
+      reader: {
+         key: reader.id,
+         value: `${reader.id} - ${reader.name}`,
+      },
+   };
+   return res.status(200).json({ fetch: true, data: fineReceipt });
 });
 
 router.post("/", auth, validate(fineReceiptModel), async function (req, res) {

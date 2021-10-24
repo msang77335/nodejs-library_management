@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const readerSchema = new Schema(
    {
-      id: { type: String, require: true },
+      id: { type: String },
       name: { type: String, require: true },
       email: { type: String, require: true },
       birthDay: { type: String, require: true },
@@ -11,7 +11,7 @@ const readerSchema = new Schema(
       phone: { type: String, require: true },
       category: { type: String, require: true },
       createBy: { type: String, require: true },
-      password: { type: String, require: true },
+      createDate: { type: String },
       active: { type: Boolean },
    },
    { collection: "reader" }

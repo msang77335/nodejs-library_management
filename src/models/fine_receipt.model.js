@@ -8,7 +8,8 @@ const fineReceiptSchema = new Schema(
       debt: { type: Number, required: true },
       payment: { type: Number, required: true },
       remaining: { type: Number, required: true },
-      date: { type: String, required: true },
+      createBy: { type: String, require: true },
+      createDate: { type: String },
       active: { type: Boolean },
    },
    { collection: "fine_receipt" }
