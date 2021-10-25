@@ -7,7 +7,7 @@ const fineReceiptSchema = new Schema(
       reader: { type: String, required: true },
       debt: { type: Number, required: true },
       payment: { type: Number, required: true },
-      remaining: { type: Number, required: true },
+      remaining: { type: Number },
       createBy: { type: String, require: true },
       createDate: { type: String },
       active: { type: Boolean },

@@ -4,6 +4,7 @@ const fineReceiptModel = require("../models/fine_receipt.model");
 const fineModel = require("../models/fine.model");
 const readerModel = require("../models/reader.model");
 const validate = require("../middleware/validate.mdw");
+const moment = require("moment");
 
 const router = express.Router();
 
@@ -65,20 +66,42 @@ router.post("/", auth, validate(fineReceiptModel), async function (req, res) {
    if (!fine) {
       return res.status(201).json({ add: false, message: "Fine id invalid!" });
    }
+   const lastFireReceipt = await fineReceiptModel
+      .find()
+      .sort({ id: -1 })
+      .limit(1);
+   const lastId = lastFireReceipt[0].id.split(".")[1];
+   const newId = "FR.".concat(
+      (parseInt(lastId) + 1).toString().padStart(6, "0")
+   );
+   fineReceipt.id = newId;
+   fineReceipt.remaining = fineReceipt.debt - fineReceipt.payment;
+   fineReceipt.createDate = moment().format("MM-DD-YYYY");
    fineReceipt.active = true;
    await new fineReceiptModel(fineReceipt).save();
    await fineModel.updateOne(
-      { reader: result.reader },
-      { $set: { debt: result.remaining } }
+      { reader: fineReceipt.reader },
+      { $set: { debt: fineReceipt.remaining } }
    );
+   console.log(fineReceipt);
    return res.status(201).json({
-      added: true,
+      add: true,
       message: "Add fine receipt success!!!",
    });
 });
 
 router.delete("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
+   const lastFireReceipt = await fineReceiptModel
+      .find()
+      .sort({ id: -1 })
+      .limit(1);
+   if (id !== lastFireReceipt[0].id) {
+      return res
+         .status(201)
+         .json({ delete: false, message: "Can't Delete Fine receipt!" });
+   }
+
    const fineReceipt = await fineReceiptModel.findOne({ id: id, active: true });
    if (!fineReceipt) {
       return res

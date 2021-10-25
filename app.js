@@ -32,7 +32,8 @@ app.use("/api/book", require("./src/routes/book.route"));
 app.use("/api/category", require("./src/routes/category.route"));
 app.use("/api/reader-category", require("./src/routes/reader_category.route"));
 app.use("/api/borrow", require("./src/routes/borrow_receipt.route"));
-app.use("/api/fine", require("./src/routes/fine_receipt.route"));
+app.use("/api/fine-receipt", require("./src/routes/fine_receipt.route"));
+app.use("/api/fine", require("./src/routes/fine.route"));
 app.use("/api/messages", require("./src/routes/message.router"));
 
 app.use(function (req, res, next) {
