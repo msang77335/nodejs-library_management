@@ -92,21 +92,20 @@ router.post("/", auth, validate(fineReceiptModel), async function (req, res) {
 
 router.delete("/:id", auth, async function (req, res) {
    const id = req.params.id || "0";
+   const fineReceipt = await fineReceiptModel.findOne({ id: id, active: true });
+   if (!fineReceipt) {
+      return res
+         .status(201)
+         .json({ delete: false, message: "Fine receipt id invalid!" });
+   }
    const lastFireReceipt = await fineReceiptModel
-      .find()
+      .find({ reader: fineReceipt.reader })
       .sort({ id: -1 })
       .limit(1);
    if (id !== lastFireReceipt[0].id) {
       return res
          .status(201)
          .json({ delete: false, message: "Can't Delete Fine receipt!" });
-   }
-
-   const fineReceipt = await fineReceiptModel.findOne({ id: id, active: true });
-   if (!fineReceipt) {
-      return res
-         .status(201)
-         .json({ delete: false, message: "Fine receipt id invalid!" });
    }
    const fine = await fineModel.findOne({ reader: fineReceipt.reader });
    if (!fine) {
